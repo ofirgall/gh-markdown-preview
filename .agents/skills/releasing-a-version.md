@@ -30,10 +30,9 @@ This repo has a quirk: the `gh-markdown-preview` launcher script in the repo roo
    git push origin vX.Y.Z
    ```
 
-6. **Create the GitHub release.** The active `gh` account must be `ofirgall` (this is a fork; the default account on this machine is `ofir-drift`). Switch if needed:
+6. **Create the GitHub release.** This repo lives under the `ofirgall` GitHub account, but the default active `gh` account on this machine is `ofir-drift`. **ALWAYS run `gh auth switch --user ofirgall` before any `gh` command in this repo**, even if you switched earlier in the session — the active account can flip back between commands. Don't assume; switch every time.
    ```
-   gh auth status
-   gh auth switch --user ofirgall   # only if active account isn't ofirgall
+   gh auth switch --user ofirgall
    gh release create vX.Y.Z --title "vX.Y.Z" --notes "..."
    ```
 
