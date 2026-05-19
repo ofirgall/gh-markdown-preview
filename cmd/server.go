@@ -11,11 +11,12 @@ import (
 )
 
 type TemplateParam struct {
-	Title  string
-	Body   string
-	Host   string
-	Reload bool
-	Mode   string
+	Title     string
+	Body      string
+	Host      string
+	Reload    bool
+	Mode      string
+	FullWidth bool
 }
 
 type Server struct {
@@ -121,7 +122,7 @@ func handler(filename string, param *Param, h http.Handler) http.Handler {
 		title := getTitle(filename)
 		modeString := getModeString(param.forceLightMode, param.forceDarkMode)
 
-		param := TemplateParam{Title: title, Body: html, Host: r.Host, Reload: param.reload, Mode: modeString}
+		param := TemplateParam{Title: title, Body: html, Host: r.Host, Reload: param.reload, Mode: modeString, FullWidth: param.fullWidth}
 		tmpl.Execute(w, param)
 	})
 }

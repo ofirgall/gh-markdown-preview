@@ -20,6 +20,7 @@ type Param struct {
 	forceLightMode bool
 	forceDarkMode  bool
 	autoOpen       bool
+	fullWidth    bool
 	// stdin support
 	useStdin     bool
 	stdinContent string
@@ -65,6 +66,8 @@ var rootCmd = &cobra.Command{
 			autoOpen = false
 		}
 
+		fullWidth, _ := cmd.Flags().GetBool("full")
+
 		// Detect stdin usage
 		useStdin := false
 		stdinContent := ""
@@ -93,6 +96,7 @@ var rootCmd = &cobra.Command{
 			forceLightMode: forceLightMode,
 			forceDarkMode:  forceDarkMode,
 			autoOpen:       autoOpen,
+			fullWidth:      fullWidth,
 			useStdin:       useStdin,
 			stdinContent:   stdinContent,
 		}
@@ -121,6 +125,7 @@ func init() {
 	rootCmd.Flags().BoolP("verbose", "", false, "Show verbose output")
 	rootCmd.Flags().BoolP("light-mode", "", false, "Force light mode")
 	rootCmd.Flags().BoolP("dark-mode", "", false, "Force dark mode")
+	rootCmd.Flags().BoolP("full", "", false, "Full width (no max-width constraint)")
 }
 
 func showVersion() {
