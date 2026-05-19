@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"net/http"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -9,8 +11,9 @@ import (
 )
 
 const (
-	pongWait   = 60 * time.Second
-	pingPeriod = (pongWait * 9) / 10
+	pongWait          = 60 * time.Second
+	pingPeriod        = (pongWait * 9) / 10
+	disconnectGrace   = 5 * time.Second
 )
 
 var upgrader = websocket.Upgrader{
@@ -19,6 +22,38 @@ var upgrader = websocket.Upgrader{
 }
 
 var socket *websocket.Conn
+
+var (
+	connMu         sync.Mutex
+	activeConns    int
+	seenFirstConn  bool
+	shutdownTimer  *time.Timer
+)
+
+func registerConn() {
+	connMu.Lock()
+	defer connMu.Unlock()
+	activeConns++
+	seenFirstConn = true
+	if shutdownTimer != nil {
+		shutdownTimer.Stop()
+		shutdownTimer = nil
+	}
+}
+
+func unregisterConn() {
+	connMu.Lock()
+	defer connMu.Unlock()
+	if activeConns > 0 {
+		activeConns--
+	}
+	if seenFirstConn && activeConns == 0 {
+		shutdownTimer = time.AfterFunc(disconnectGrace, func() {
+			logInfo("No clients connected for %s, shutting down\n", disconnectGrace)
+			os.Exit(0)
+		})
+	}
+}
 
 func wsHandler(watcher *fsnotify.Watcher) http.Handler {
 	reload := make(chan bool, 1)
@@ -36,6 +71,7 @@ func wsHandler(watcher *fsnotify.Watcher) http.Handler {
 			}
 			return
 		}
+		registerConn()
 		socket.SetReadDeadline(time.Now().Add(pongWait))
 		socket.SetPongHandler(func(string) error { socket.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 
@@ -46,15 +82,20 @@ func wsHandler(watcher *fsnotify.Watcher) http.Handler {
 		close(done)
 		logInfo("Close WebSocket: %v\n", err)
 		socket.Close()
+		unregisterConn()
 	})
 }
 
 func wsReader(done <-chan interface{}, errorChan chan<- error) {
-	for range done {
+	for {
 		_, _, err := socket.ReadMessage()
 		if err != nil {
 			logDebug("Debug [read message]: %s", err)
-			errorChan <- err
+			select {
+			case errorChan <- err:
+			case <-done:
+			}
+			return
 		}
 	}
 }
@@ -69,14 +110,22 @@ func wsWriter(done <-chan interface{}, errChan chan<- error, reload <-chan bool)
 			err := socket.WriteMessage(websocket.TextMessage, []byte("reload"))
 			if err != nil {
 				logDebug("Debug [reload error]: %v", err)
-				errChan <- err
+				select {
+				case errChan <- err:
+				case <-done:
+				}
+				return
 			}
 		case <-ticker.C:
 			logDebug("Debug [ping send]: ping to client")
 			err := socket.WriteMessage(websocket.PingMessage, []byte{})
 			if err != nil {
 				logDebug("Debug [ping error]: %v", err)
-				// Do nothing
+				select {
+				case errChan <- err:
+				case <-done:
+				}
+				return
 			}
 		case <-done:
 			return
