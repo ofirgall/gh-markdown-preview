@@ -42,6 +42,6 @@ This repo has a quirk: the `gh-markdown-preview` launcher script in the repo roo
 
 ## Notes
 
-- The launcher script downloads prebuilt binaries from the release matching its hardcoded `tag`, falling back to `go build` from source if the platform isn't in the asset list. So a release without prebuilt binaries still works for users with Go installed, but Linux/macOS/Windows amd64+arm64 users get the binary path.
-- There is no CI release workflow in this repo — releases are manual. Prebuilt binaries are not currently produced; the script's fallback `go build` path handles installs.
+- The launcher script always builds from source via `go build` — this fork does not publish prebuilt release binaries. The `tag=` line in the script controls which `dist/<tag>/` directory caches the built binary; bumping it forces a rebuild on next invocation.
+- There is no CI release workflow in this repo — releases are manual. No prebuilt assets are uploaded.
 - The remote is `git@github.com:ofirgall/gh-markdown-preview.git` (a fork of `yusukebe/gh-markdown-preview`). Do not push tags upstream.
