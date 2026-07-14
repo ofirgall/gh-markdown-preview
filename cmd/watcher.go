@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sync"
 	"time"
@@ -55,8 +56,16 @@ func createWatcher(dir string) (*fsnotify.Watcher, error) {
 	if err != nil {
 		return watcher, err
 	}
+
+	// Resolve symlinks so kqueue on macOS can watch the real path
+	// (e.g. /tmp -> /private/tmp).
+	resolved, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return watcher, err
+	}
+
 	logInfo("Watching %s/ for changes", dir)
-	err = watcher.Add(dir)
+	err = watcher.Add(resolved)
 	return watcher, err
 }
 
