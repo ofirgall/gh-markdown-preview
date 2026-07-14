@@ -1,6 +1,9 @@
 ---
 name: releasing-a-version
-description: Use when the user asks to cut, tag, or publish a new release of gh-markdown-preview. Covers version bump, tag, push, GitHub release, and the launcher-script tag update that must accompany it.
+description: >-
+  Cut, tag, and publish a new release of gh-markdown-preview. Use when the user
+  asks to release, cut a version, tag, or publish a new version.
+disable-model-invocation: true
 ---
 
 # Releasing a version of gh-markdown-preview
