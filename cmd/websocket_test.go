@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -13,14 +12,13 @@ import (
 )
 
 func TestWriter(t *testing.T) {
-	testFile, err := os.CreateTemp("", "markdown-preview-test")
+	dir := t.TempDir()
+	testFile, err := os.CreateTemp(dir, "markdown-preview-test")
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
-	defer os.Remove(testFile.Name())
 
 	_, _ = testFile.Write([]byte("BEFORE.\n"))
-	dir := filepath.Dir(testFile.Name())
 
 	watcher, err := createWatcher(dir)
 

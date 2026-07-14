@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-tag="v1.14.0"
+tag="v1.14.1"
 
 extension_path="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 tag_path="${extension_path}/dist/${tag}"
