@@ -56,13 +56,13 @@ func unregisterConn() {
 }
 
 func wsHandler(watcher *fsnotify.Watcher) http.Handler {
-	reload := make(chan bool, 1)
-	errorChan := make(chan error)
-	done := make(chan interface{})
-
-	go watch(done, errorChan, reload, watcher)
-
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		reload := make(chan bool, 1)
+		errorChan := make(chan error)
+		done := make(chan interface{})
+
+		go watch(done, errorChan, reload, watcher)
+
 		var err error
 		socket, err = upgrader.Upgrade(w, r, nil)
 		if err != nil {
